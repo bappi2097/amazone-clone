@@ -11,6 +11,14 @@
   background-color: white;
   z-index: 1;
 }
+
+.product:hover {
+  margin: 5px;
+  padding: 25px;
+  transition-delay: 0.5ms;
+  box-shadow: 4px 2px 4px rgb(165, 165, 165);
+}
+
 .product__rating {
   display: flex;
 }
