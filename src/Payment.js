@@ -7,6 +7,8 @@ import { useStripe, useElements, CardElement } from "@stripe/react-stripe-js";
 import CurrencyFormat from "react-currency-format";
 import { getBasketTotal } from "./reducer";
 import axios from "./axios";
+import { db } from "./firebase";
+
 function Payment() {
   const [{ basket, user }, dispatch] = useStateValue();
   const history = useHistory();
@@ -18,6 +20,7 @@ function Payment() {
   const [error, setError] = useState(null);
   const [disabled, setDisabled] = useState(true);
   const [clientSecret, setClientSecret] = useState(true);
+
   useEffect(() => {
     //
     const getClientSecret = async () => {
@@ -30,6 +33,7 @@ function Payment() {
     getClientSecret();
   }, [basket]);
   console.log("THE SECRET IS >>>", clientSecret);
+
   const handleSubmit = async (event) => {
     //
     event.preventDefault();
@@ -41,6 +45,15 @@ function Payment() {
         },
       })
       .then(({ paymentIntent }) => {
+        db.collection("users")
+          .doc(user?.uid)
+          .collection("orders")
+          .doc(paymentIntent.id)
+          .set({
+            basket: basket,
+            amount: paymentIntent.amount,
+            created: paymentIntent.created,
+          });
         setSucceeded(true);
         setError(null);
         setProcessing(false);
@@ -50,11 +63,13 @@ function Payment() {
         history.replace("/orders");
       });
   };
+
   const handleChange = (event) => {
     //
     setDisabled(event.empty);
     setError(event.error ? event.error.message : "");
   };
+
   return (
     <div className="payment">
       <div className="payment__container">
@@ -91,7 +106,7 @@ function Payment() {
           <div className="payment__title">
             <h3>ReviewPayment Methods</h3>
           </div>
-          <div className="payment__detailes">
+          <div className="payment__details">
             <form onSubmit={handleSubmit}>
               <CardElement onChange={handleChange} />
               <div className="payment__priceContainer">
